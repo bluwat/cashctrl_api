@@ -631,10 +631,10 @@ class CashCtrlClient:
         """
         tax_rates = pd.DataFrame(self.get("tax/list.json")["data"])
         df = enforce_dtypes(tax_rates, TAX_COLUMNS)
-        return df.sort_values("name")
+        return df.sort_values("code")
 
     def tax_code_from_id(self, id: int, allow_missing: bool = False) -> str | None:
-        """Retrieve the tax code name corresponding to a given id.
+        """Retrieve the tax code corresponding to a given id.
 
         Args:
             id (int): The id of the tax code.
@@ -642,14 +642,14 @@ class CashCtrlClient:
                                      Otherwise raise a ValueError.
 
         Returns:
-            str | None: The tax code name associated with the provided id.
+            str | None: The tax code associated with the provided id.
                         or None if allow_missing is True and there is no such tax code.
 
         Raises:
             ValueError: If the tax id does not exist and allow_missing=False.
         """
         df = self.list_tax_rates()
-        result = df.loc[df["id"] == id, "name"]
+        result = df.loc[df["id"] == id, "code"]
         if result.empty:
             if allow_missing:
                 return None
@@ -658,16 +658,16 @@ class CashCtrlClient:
         else:
             return result.item()
 
-    def tax_code_to_id(self, name: str, allow_missing: bool = False) -> int | None:
-        """Retrieve the id corresponding to a given tax code name.
+    def tax_code_to_id(self, code: str, allow_missing: bool = False) -> int | None:
+        """Retrieve the id corresponding to a given tax code.
 
         Args:
-            name (str): The tax code name.
+            code (str): The tax code.
             allow_missing (boolean): If True, return None if the tax code does not exist.
                                      Otherwise raise a ValueError.
 
         Returns:
-            int | None: The id associated with the provided tax code name.
+            int | None: The id associated with the provided tax code.
                         or None if allow_missing is True and there is no such tax code.
 
         Raises:
@@ -675,14 +675,14 @@ class CashCtrlClient:
                         or if the tax code is duplicated.
         """
         df = self.list_tax_rates()
-        result = df.loc[df["name"] == name, "id"]
+        result = df.loc[df["code"] == code, "id"]
         if result.empty:
             if allow_missing:
                 return None
             else:
-                raise ValueError(f"No id found for tax code {name}")
+                raise ValueError(f"No id found for tax code {code}")
         elif len(result) > 1:
-            raise ValueError(f"Multiple ids found for tax code {name}")
+            raise ValueError(f"Multiple ids found for tax code {code}")
         else:
             return result.item()
 
