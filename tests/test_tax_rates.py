@@ -12,8 +12,8 @@ def cc_client() -> CashCtrlClient:
 def test_tax_code_from_id(cc_client):
     tax_rates = cc_client.list_tax_rates()
     assert (
-        cc_client.tax_code_from_id(tax_rates["id"].iat[0]) == tax_rates["name"].iat[0]
-    ), "Mapped tax code name doesn't correspond actual name"
+        cc_client.tax_code_from_id(tax_rates["id"].iat[0]) == tax_rates["code"].iat[0]
+    ), "Mapped tax code doesn't correspond to actual code"
 
 
 def test_tax_code_from_id_invalid_id_raises_error(cc_client):
@@ -28,8 +28,8 @@ def test_tax_code_from_id_invalid_id_returns_none_with_allowed_missing(cc_client
 def test_tax_code_to_id(cc_client):
     tax_rates = cc_client.list_tax_rates()
     assert (
-        cc_client.tax_code_to_id(tax_rates["name"].iat[1]) == tax_rates["id"].iat[1]
-    ), "Mapped tax code id doesn't correspond actual id"
+        cc_client.tax_code_to_id(tax_rates["code"].iat[1]) == tax_rates["id"].iat[1]
+    ), "Mapped tax code id doesn't correspond to actual id"
 
 
 def test_tax_code_to_id_with_invalid_tax_code_raises_error(cc_client):
