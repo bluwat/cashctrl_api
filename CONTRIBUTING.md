@@ -50,7 +50,7 @@ Follow these steps to set up your local development environment on Unix/Mac OS:
 2. **Clone the repository using SSH.**
     Ensure your SSH keys are set up on GitHub:
     ```bash
-    git clone git@github.com:macxred/cashctrl_api.git
+    git clone git@github.com:bluwat/cashctrl_api.git
     ```
 
 3. **Create a virtual development environment.**

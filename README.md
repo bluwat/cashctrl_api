@@ -1,6 +1,6 @@
 # Python Client for CashCtrl REST API
 
-[![codecov](https://codecov.io/gh/macxred/cashctrl_api/branch/main/graph/badge.svg)](https://codecov.io/gh/macxred/cashctrl_api)
+[![codecov](https://codecov.io/gh/bluwat/cashctrl_api/branch/main/graph/badge.svg)](https://codecov.io/gh/bluwat/cashctrl_api)
 
 `cashctrl_api` is a lightweight Python package that implements the
 CashCtrlClient class for interactions with the
@@ -67,7 +67,7 @@ The organization name and API key will be used to authenticate API requests.
 Easily install the package using pip:
 
 ```bash
-pip install https://github.com/macxred/cashctrl_api/tarball/main
+pip install https://github.com/bluwat/cashctrl_api/tarball/main
 ```
 
 
