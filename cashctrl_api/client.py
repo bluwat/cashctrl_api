@@ -31,7 +31,7 @@ from .list_directory import list_directory
 class CashCtrlClient:
     """A lightweight wrapper to interact with the CashCtrl REST API.
 
-    See README on https://github.com/macxred/cashctrl_api for overview and usage examples.
+    See README on https://github.com/bluwat/cashctrl_api for overview and usage examples.
     """
 
     # ----------------------------------------------------------------------
