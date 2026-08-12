@@ -148,7 +148,6 @@ PROFIT_CENTER_COLUMNS = {
     "categoryName": "string[python]",
     "number": "int",
     "name": "string[python]",
-    "type": "string[python]",
     "notes": "string[python]",
     "attachmentCount": "Int64",
     "openingAmount": "float64",
@@ -156,6 +155,7 @@ PROFIT_CENTER_COLUMNS = {
     "targetMin": "float64",
     "targetMax": "float64",
     "targetDisplay": "float64",
+    "inactive": "bool",
     "isInactive": "bool",
 }
 

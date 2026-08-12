@@ -59,3 +59,22 @@ def test_list_journal_entries_to_have_columns_and_dtypes():
             f"Column '{column}' has incorrect dtype. Expected '{expected_dtype}', "
             f"but got '{actual_dtype}'."
         )
+
+
+def test_list_profit_centers_to_have_expected_columns_and_dtypes():
+    # Create the CashCtrlClient object and fetch the DataFrame
+    cc_client = CashCtrlClient()
+    profit_centers = cc_client.list_profit_centers()
+
+    assert isinstance(profit_centers, pd.DataFrame), "`profit_centers` is not a DataFrame."
+    assert set(constants.PROFIT_CENTER_COLUMNS.keys()) == set(profit_centers.columns), (
+        "Some expected columns are missing or unexpected columns found"
+    )
+
+    # Check that the data types of the columns are as expected
+    for column, expected_dtype in constants.PROFIT_CENTER_COLUMNS.items():
+        actual_dtype = profit_centers[column].dtype
+        assert actual_dtype == expected_dtype, (
+            f"Column '{column}' has incorrect dtype. Expected '{expected_dtype}', "
+            f"but got '{actual_dtype}'."
+        )
