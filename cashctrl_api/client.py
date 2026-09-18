@@ -219,13 +219,16 @@ class CashCtrlClient:
                 rows.append({"path": path} | node)
             return rows
 
-        data = self.get(f"{resource}/category/tree.json")["data"]
-        df = pd.DataFrame(flatten_nodes(data.copy()))
-
         if resource == "account":
             columns = CATEGORY_COLUMNS | {"number": "Int64"}
         else:
             columns = CATEGORY_COLUMNS
+
+        data = self.get(f"{resource}/category/tree.json")["data"]
+        # CashCtrl omits keys that are unset on every node: 'parentId' in a tree of root
+        # nodes only, the timestamps on the file system root. Naming the columns keeps
+        # them present and null instead of absent.
+        df = pd.DataFrame(flatten_nodes(data.copy()), columns=list(columns))
         df = enforce_dtypes(df, columns)
         if not include_system:
             df = df.loc[~df["isSystem"], :]
