@@ -58,3 +58,27 @@ def test_profit_center_to_id_with_invalid_profit_center_returns_none_with_allowe
     cc_client
 ):
     assert cc_client.profit_center_to_id(99999999, allow_missing=True) is None
+
+
+def test_list_profit_centers_without_type(monkeypatch):
+    """CashCtrl omits 'type' when no profit center has one, which must not be
+    mistaken for a missing column.
+    """
+    untyped_profit_center = [{
+        "id": 1,
+        "created": "2026-09-17 16:20:09.0",
+        "createdBy": "SYSTEM",
+        "lastUpdated": "2026-09-17 16:20:09.0",
+        "lastUpdatedBy": "SYSTEM",
+        "number": 1,
+        "name": "Test profit center",
+        "isInactive": False,
+    }]
+    monkeypatch.setattr(
+        CashCtrlClient, "get", lambda *args, **kwargs: {"data": untyped_profit_center}
+    )
+
+    client = CashCtrlClient(organisation="test", api_key="test")
+    profit_centers = client.list_profit_centers()
+    assert profit_centers["name"].to_list() == ["Test profit center"]
+    assert profit_centers["type"].isna().all(), "No profit center has a type"
