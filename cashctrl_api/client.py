@@ -182,6 +182,17 @@ class CashCtrlClient:
         """Send DELETE request. See json_request for args and return value."""
         return self.json_request("DELETE", endpoint, data=data, params=params)
 
+    @staticmethod
+    def _data_frame(records: list, columns: dict) -> pd.DataFrame:
+        """Convert API records to a data frame with all `columns` present.
+
+        CashCtrl omits a key that is unset on every record: 'parentId' in a category
+        tree of root nodes only, 'type' where no profit center has one. Naming the
+        columns keeps them present and null instead of absent, which otherwise makes
+        enforce_dtypes() reject the whole response.
+        """
+        return pd.DataFrame(records, columns=list(columns))
+
     # ----------------------------------------------------------------------
     # Categories
 
@@ -219,13 +230,13 @@ class CashCtrlClient:
                 rows.append({"path": path} | node)
             return rows
 
-        data = self.get(f"{resource}/category/tree.json")["data"]
-        df = pd.DataFrame(flatten_nodes(data.copy()))
-
         if resource == "account":
             columns = CATEGORY_COLUMNS | {"number": "Int64"}
         else:
             columns = CATEGORY_COLUMNS
+
+        data = self.get(f"{resource}/category/tree.json")["data"]
+        df = self._data_frame(flatten_nodes(data.copy()), columns)
         df = enforce_dtypes(df, columns)
         if not include_system:
             df = df.loc[~df["isSystem"], :]
@@ -405,14 +416,14 @@ class CashCtrlClient:
         # We override the size limit to download all values
         # https://app.cashctrl.com/static/help/en/api/index.html#/file/list.json
         response = self.get("file/list.json", params={"limit": 999999999999999999})
-        files = pd.DataFrame(response["data"])
+        columns_except_path = {
+            key: value for key, value in FILE_COLUMNS.items() if key != "path"
+        }
+        files = self._data_frame(response["data"], columns_except_path)
         date_columns = ["created", "lastUpdated", "dateArchived"]
         if not files.empty:
             for column in date_columns:
                 files[column] = files[column].astype("datetime64[ns, Europe/Berlin]")
-        columns_except_path = {
-            key: value for key, value in FILE_COLUMNS.items() if key != "path"
-        }
         df = enforce_dtypes(files, columns_except_path)
         if len(df) > 0:
             categories = self.list_categories("file")[["path", "id"]]
@@ -629,7 +640,7 @@ class CashCtrlClient:
         Returns:
             pd.DataFrame: A DataFrame with CashCtrlClient.TAX_COLUMNS schema.
         """
-        tax_rates = pd.DataFrame(self.get("tax/list.json")["data"])
+        tax_rates = self._data_frame(self.get("tax/list.json")["data"], TAX_COLUMNS)
         df = enforce_dtypes(tax_rates, TAX_COLUMNS)
         return df.sort_values("code")
 
@@ -697,10 +708,10 @@ class CashCtrlClient:
         Returns:
             pd.DataFrame: A DataFrame with CashCtrlClient.ACCOUNT_COLUMNS schema.
         """
-        accounts = pd.DataFrame(self.get("account/list.json")["data"])
         columns_except_path = {
             key: value for key, value in ACCOUNT_COLUMNS.items() if key != "path"
         }
+        accounts = self._data_frame(self.get("account/list.json")["data"], columns_except_path)
         df = enforce_dtypes(accounts, columns_except_path)
         if len(df) > 0:
             categories = self.list_categories("account", include_system=True)[["path", "id"]]
@@ -801,7 +812,7 @@ class CashCtrlClient:
         Returns:
             pd.DataFrame: A DataFrame with currencies.
         """
-        currencies = pd.DataFrame(self.get("currency/list.json")["data"])
+        currencies = self._data_frame(self.get("currency/list.json")["data"], CURRENCY_COLUMNS)
         df = enforce_dtypes(currencies, CURRENCY_COLUMNS)
         return df.sort_values("code")
 
@@ -872,7 +883,7 @@ class CashCtrlClient:
         for fp_id in fiscal_period_id:
             params = {"limit": 999999999999999999, "fiscalPeriodId": fp_id}
             response = self.get("journal/list.json", params=params)
-            df = pd.DataFrame(response["data"])
+            df = self._data_frame(response["data"], JOURNAL_ENTRIES)
             all_entries.append(df)
 
         entries = pd.concat(all_entries, ignore_index=True) if all_entries else pd.DataFrame()
@@ -914,7 +925,9 @@ class CashCtrlClient:
         Returns:
             pd.DataFrame: A DataFrame with CashCtrlClient.PROFIT_CENTER_COLUMNS schema.
         """
-        profit_centers = pd.DataFrame(self.get("account/costcenter/list.json")["data"])
+        profit_centers = self._data_frame(
+            self.get("account/costcenter/list.json")["data"], PROFIT_CENTER_COLUMNS
+        )
         df = enforce_dtypes(profit_centers, PROFIT_CENTER_COLUMNS)
         return df.sort_values("name")
 
@@ -981,7 +994,9 @@ class CashCtrlClient:
         Returns:
             pd.DataFrame: A DataFrame with FISCAL_PERIOD_SCHEMA applied.
         """
-        fiscal_periods = pd.DataFrame(self.get("fiscalperiod/list.json")["data"])
+        fiscal_periods = self._data_frame(
+            self.get("fiscalperiod/list.json")["data"], FISCAL_PERIOD_COLUMNS
+        )
         fiscal_periods = enforce_dtypes(fiscal_periods, FISCAL_PERIOD_COLUMNS)
         fp = fiscal_periods.sort_values("start").reset_index(drop=True)
 

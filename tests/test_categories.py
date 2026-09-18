@@ -174,3 +174,28 @@ def test_account_category_create_new_root_category_raises_error():
     target["/New_root"] = 9999999999
     with pytest.raises(ValueError, match="Cannot create new root nodes for account categories"):
         cc_client.update_categories("account", target=target)
+
+
+def test_list_categories_with_root_nodes_only(monkeypatch):
+    """CashCtrl omits keys that are unset on every node, such as 'parentId' in the
+    root-only tree an organisation is left with after clearing all categories.
+    """
+    root_only_tree = [{
+        "id": 1,
+        "created": "2026-09-17 16:20:09.0",
+        "createdBy": "SYSTEM",
+        "lastUpdated": "2026-09-17 16:20:09.0",
+        "lastUpdatedBy": "SYSTEM",
+        "number": "1",
+        "name": "Balance",
+        "text": "Balance",
+        "cls": "ASSET",
+        "leaf": True,
+        "isSystem": True,
+    }]
+    monkeypatch.setattr(CashCtrlClient, "get", lambda *args, **kwargs: {"data": root_only_tree})
+
+    cc_client = CashCtrlClient(organisation="test", api_key="test")
+    categories = cc_client.list_categories("account", include_system=True)
+    assert categories["path"].to_list() == ["/Balance"]
+    assert categories["parentId"].isna().all(), "Root nodes have no parent"
