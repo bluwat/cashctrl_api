@@ -60,8 +60,8 @@ def test_profit_center_to_id_with_invalid_profit_center_returns_none_with_allowe
     assert cc_client.profit_center_to_id(99999999, allow_missing=True) is None
 
 
-def test_list_profit_centers_without_type(monkeypatch):
-    """CashCtrl omits 'type' when no profit center has one, which must not be
+def test_list_profit_centers_without_notes(monkeypatch):
+    """CashCtrl omits 'notes' when no profit center has any, which must not be
     mistaken for a missing column.
     """
     untyped_profit_center = [{
@@ -81,4 +81,4 @@ def test_list_profit_centers_without_type(monkeypatch):
     client = CashCtrlClient(organisation="test", api_key="test")
     profit_centers = client.list_profit_centers()
     assert profit_centers["name"].to_list() == ["Test profit center"]
-    assert profit_centers["type"].isna().all(), "No profit center has a type"
+    assert profit_centers["notes"].isna().all(), "No profit center has notes"
