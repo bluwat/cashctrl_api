@@ -192,3 +192,8 @@ FISCAL_PERIOD_COLUMNS = {
 }
 
 CACHE_TIMEOUT = 300
+
+# Seconds to wait for CashCtrl to start answering a request. A clear() that deletes a few
+# thousand journal entries in one call finishes in minutes, while a staging organisation
+# that stops answering holds a connection open until the CI job is killed hours later.
+REQUEST_TIMEOUT = 600

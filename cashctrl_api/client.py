@@ -22,6 +22,7 @@ from .constants import (
     FISCAL_PERIOD_COLUMNS,
     JOURNAL_ENTRIES,
     PROFIT_CENTER_COLUMNS,
+    REQUEST_TIMEOUT,
     TAX_COLUMNS
 )
 from consistent_df import enforce_dtypes
@@ -74,7 +75,10 @@ class CashCtrlClient:
 
         This method will retry the request up to three times in case of
         connection-related exceptions or a 429 status code (Too Many Requests).
+        A request CashCtrl leaves unanswered for `REQUEST_TIMEOUT` seconds raises
+        `ReadTimeout` without a retry.
         """
+        kwargs.setdefault("timeout", REQUEST_TIMEOUT)
         retries = 3
         for attempt in range(retries):
             try:
@@ -85,6 +89,11 @@ class CashCtrlClient:
                     time.sleep(wait_time)
                 else:
                     break
+            except requests.exceptions.ReadTimeout as e:
+                # CashCtrl may have acted on the request, so a retry could apply it twice.
+                raise requests.exceptions.ReadTimeout(
+                    f"CashCtrl did not answer {method} {url} within {kwargs['timeout']} s"
+                ) from e
             except (urllib3.exceptions.MaxRetryError,
                     requests.exceptions.ConnectionError) as e:
                 attempt += 1
